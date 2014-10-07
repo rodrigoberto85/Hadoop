@@ -2,3 +2,158 @@ Hadoop
 ======
 
 Hadoop, Big Data e Afins
+
+Hadoop
+Hosts:
+10.0.0.147 - Mac: E6:41:B3:25:6C:CB
+10.0.0.148 - MAC: 2A:75:64:80:C8:F9
+
+Firewall e rede:
+Desabilitar firewall, instalar system-config-firewall-tui
+Desabilitar selinux
+
+Desabilitar IPV6
+Para desabilitar IPV6 em todos os nós participantes do cluster, editar o arquivo em /etc/sysctl.conf e adicionar as linhas abaixo
+#disable ipv6
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+Após a edição reiniciar as maquinas.
+Edição hosts:
+Editar arquivo /etc/hosts e incluir o nome do servidor namenode e os nomes seguidos do IP 
+master		numeroip
+node		numeroip
+
+Usuarios e grupos:
+Criar usuario hduser 
+Criar grupo hadoop
+Incluir hduser no grupo hadoop
+#addgroup hadoop
+2	#adduser –ingroup hadoop hduser
+
+SSH
+Criar o par de chaves para ssh acesso sem senha:
+Conectado com o usuário hduser executar os comando abaixo:
+$ ssh-keygen -t rsa
+Habilitar acesso ssh sem uso de senha
+hduser@node1:~$ cat $HOME/.ssh/id_rsa.pub >> $HOME/.ssh/authorized_keys
+Seguindo da distribuição da chave para os demais hosts:
+hduser@master:~$ ssh-copy-id -i $HOME/.ssh/id_rsa.pub hduser@slave
+
+Instalação e configuração dos pacotes:
+Baixar o pacote de instalação do Hadoop 2.5
+#cd /opt
+#wget http://apache.claz.org/hadoop/common/hadoop-2.4.0/hadoop-2.4.0.tar.gz
+#tar xzf hadoop-2.4.0.tar.gz
+Definindo local de instalação dos pacotes para /usr/local/
+#mv hadoop-2.4.0.tar.gv hadoop
+#cp –Rf hadoop /usr/local
+#chmod –Rf 777 /usr/local/hadoop
+
+Java:
+Baixar e instalar pacote de instalação Java Jdk:
+#rpm –ivh jdk-8u20-linux-x64
+Setar variável de ambiente para todos usuários JAVA_HOME
+Incluir as linhas abaixo ao final do arquivo /etc/profile
+export JAVA_HOME="/usr/java/jdk1.8.0_20"
+PATH=$PATH:$HOME/bin:$JAVA_HOME/bin
+export JAVA_HOME
+export PATH
+Seguindo com o commando para carregar as novas variaveis de ambiente:
+	#source /etc/profile
+Verificando instalação do java e carregamento das variáveis de ambiente:
+	#java –version
+Retorno do comando acima:
+java version "1.8.0_20"
+Java(TM) SE Runtime Environment (build 1.8.0_20-b26)
+Java HotSpot(TM) 64-Bit Server VM (build 25.20-b23, mixed mode)
+
+Verificando a variável de ambiente Java:
+	#env | grep JAVA
+Retorno do comando:
+JAVA_HOME=/usr/java/jdk1.8.0_20
+Hadoop:
+Setar variáveis de ambiente para funcionamento dos pacotes dos sistemas do projeto Hadoop, para a edição dos arquivos utilizar o usuário hduser, criado anteriormente.
+
+Variáveis de ambiente:
+Setar variáveis de ambiente do usuário hduser em /home/hduser/.bashrc
+export HADOOP_HOME=/usr/local/hadoop
+export HADOOP_INSTALL=$HADOOP_HOME
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export YARN_HOME=$HADOOP_HOME
+export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+export PATH=$PATH:$HADOOP_HOME/sbin:$HADOOP_HOME/bin
+Carregar variaveis de ambiente:
+$source /home/hduser/.bashrc
+Arquivos configuração:
+Arquivos necessários configurar no nó master 
+Confs basicas para funcionamento de um cluster com 01 datanode adicional em /usr/local/hadoop/etc/hadoop – core-site.xml, hdfs-site.xml, mapred-site.xml, yarn-site.xml
+
+Core-site.xml
+<configuration>
+<property>
+  <name>fs.default.name</name>
+    <value>hdfs://master:9000</value>
+</property>
+</configuration>
+
+Hdfs-site.xml
+<configuration>
+<property>
+ <name>dfs.replication</name>
+  <value>2</value>
+</property>
+<property>
+ <name>dfs.name.dir</name>
+   <value>file:///hadoop/hadoopdata/hdfs/namenode</value>
+</property>
+<property>
+ <name>dfs.data.dir</name>
+   <value>file:///hadoop/hadoopdata/hdfs/datanode</value>
+</property>
+</configuration>
+Mapred-site.xml
+<configuration>
+<property>
+ <name>mapreduce.framework.name</name>
+   <value>yarn</value>
+</property>
+</configuration>
+
+Yarn-site.xml
+<configuration>
+<property>
+ <name>yarn.nodemanager.aux-services</name>
+   <value>mapreduce_shuffle</value>
+</property>
+</configuration>
+
+Setup inicial e inicialização: 
+Após as configurações do master do cluster e dos nós participantes formatar o HDFS, logar no master com o usuário hduser 
+#su hduser
+E seguir com os comandos para formatar o namenode
+$cd /usr/local/hadoop/bin
+$./hdfs namenode – format
+
+Inciando os serviços do cluster:
+$cd /usr/local/hadoop/sbin
+$./start-dfs.sh
+Seguindo do comando:
+$./start-yarn.sh
+Para acompanhar o funcionamento dos serviços do cluster verificar na saída do comando jps no namenode e nos demais datanodes do cluster.
+Saída do comando no namenode:
+[hduser@master sbin]$ jps
+1953 NodeManager
+1713 SecondaryNameNode
+17812 Jps
+1512 DataNode
+1854 ResourceManager
+1391 NameNode
+
+Saída do comando no datanode:
+[hduser@node /]$ jps
+15857 Jps
+1279 DataNode
+
