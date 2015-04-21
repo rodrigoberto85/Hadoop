@@ -1,0 +1,53 @@
+Hbase Setup
+
+HAdoop
+Versão hadoop hdfs (hadoop-2.1.1-beta)
+Instalação previa do Hadoop com as seguintes confs:
+HADOOP_HOME = /usr/local/hadoop
+
+HBase
+Versão hbase-0.96.2-hadoop2
+
+#cd /opt
+#tar -xzf hbase-0.96.2-hadoop2-bin.tar.gz
+#mv hbase-0.96.2-hadoop2 hbase
+#cp -Rf hbase /usr/local/
+
+Setar permissões para executar no mesmo usuario do Hadoop
+
+#chown -Rf hadoop.hadoop hbase
+#chmod -Rf 755 hbase
+
+Arquivos de configuração
+
+#su hadoop
+$cd /usr/local/hbase/conf
+
+Editar hbase-env.sh e setar o JAVA_HOME
+#vim hbase-env.sh
+Descomentar e digitar o caminho do jdk, no caso versão 1.7, portanto a linha vai ficar:
+export JAVA_HOME=/usr/java/jdk1.7.0_76
+
+Editar arquivo hbase-site.xml
+
+o conteudo do arquivo deve ficar como segue:
+
+<configuration>
+<property>
+  <name>hbase.cluster.distributed</name>
+  <value>true</value>
+</property>
+<property>
+  <name>hbase.rootdir</name>
+  <value>hdfs://master:9000/hbase</value>
+</property>
+</configuration>
+
+Para iniciar os serviços do HBASE segue o comando isso após os serviços de dfs e yarn do Hadoop iniciados:
+
+$/usr/local/hbase/bin/start-hbase.sh
+
+Para acessar o console do HBase
+
+$/usr/local/hbase/bin/hbase shell
+
