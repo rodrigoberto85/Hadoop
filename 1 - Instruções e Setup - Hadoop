@@ -152,3 +152,6 @@ Saída do comando no datanode:
 15857 Jps
 1279 DataNode
 
+Web Interface
+
+http://master:50070
