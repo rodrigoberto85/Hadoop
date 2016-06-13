@@ -51,3 +51,7 @@ Para acessar o console do HBase
 
 $/usr/local/hbase/bin/hbase shell
 
+Hbase WEB UI
+
+http://master:16010
+
